@@ -313,6 +313,16 @@ function renderExamDay() {
       ${a.link ? `<p><a href="${exEsc(a.link)}" target="_blank" rel="noopener">ETS 공식 연습 자료 열기</a></p>` : ""}
       </div></div>
       <label class="exam-output"><span>산출물 · ${exEsc(a.output)} <small>자동 저장</small></span><textarea rows="3" data-ex-output="${a.id}">${exEsc(outputs[a.id] || "")}</textarea></label>
+      <div class="exam-ai">
+        <span class="exam-ai-label">AI 피드백</span>
+        <a class="exam-ai-btn" href="https://claude.ai/new" target="_blank" rel="noopener" data-ex-ai="${a.id}">Claude</a>
+        <a class="exam-ai-btn" href="https://chatgpt.com/" target="_blank" rel="noopener" data-ex-ai="${a.id}">ChatGPT</a>
+        <span class="exam-ai-msg" data-ex-ai-msg="${a.id}" role="status"></span>
+      </div>
+      <details class="exam-fb"${outputs[a.id + ":fb"] ? " open" : ""}>
+        <summary>받은 피드백 저장</summary>
+        <textarea rows="4" data-ex-output="${a.id}:fb" placeholder="AI가 알려 준 고친 문장과 더 나은 답안을 붙여 넣어 두세요.">${exEsc(outputs[a.id + ":fb"] || "")}</textarea>
+      </details>
       ${a.section !== "general" ? `<button type="button" class="exam-link" data-ex-action="log-error" data-ex-id="${a.section}">오류 기록에 추가</button>` : ""}
     </article>`).join("");
   return `
@@ -324,6 +334,26 @@ function renderExamDay() {
     </div>
     ${exDayStatus(day)}
     ${day.type === "rest" ? `<p class="exam-rest">휴식일입니다. 밀린 과제가 있다면 1개만 보충합니다.</p>` : acts}`;
+}
+
+// AI에 붙여 넣을 질문. 학생 답안은 URL에 넣지 않고 클립보드로만 옮긴다.
+function exFeedbackPrompt(pack, a, answer) {
+  const taskNames = a.tasks.map((t) => pack.sections.flatMap((s) => s.tasks).find((x) => x.id === t)?.name || t);
+  return [
+    `너는 ${pack.name}(${pack.version} 형식) 영어 코치야. 한국 고등학생의 연습 산출물을 봐 줘. 설명은 한국어로 짧게 해 줘.`,
+    "",
+    `[과제] ${exSectionName(pack, a.section)} · ${taskNames.length ? taskNames.join(" + ") : a.title}`,
+    `[과제 안내]\n${a.steps.map((st, i) => `${i + 1}. ${st}`).join("\n")}`,
+    a.ref ? `[본문] ${a.ref}` : null,
+    `[학생 산출물: ${a.output}]\n"""\n${answer}\n"""`,
+    "",
+    "[피드백 규칙]",
+    `- ${pack.feedback[a.section] || pack.feedback.review}`,
+    "- 한 번에 너무 많이 고치지 말고 가장 중요한 오류 1–3개만 골라 줘.",
+    `- 오류마다 '원문 → 고친 문장 → 이유 → 오류 유형' 순서로 써 줘. 오류 유형은 다음 중에서 골라 줘: ${pack.error_tags.join(", ")}`,
+    "- 마지막에 학생 수준에 맞는 '더 나은 답안' 예시를 하나 보여 줘. 너무 어려운 어휘는 쓰지 마.",
+    "- 점수를 예측하거나 공식 점수처럼 말하지 마."
+  ].filter((line) => line !== null).join("\n");
 }
 
 function renderExamErrors() {
@@ -389,6 +419,29 @@ function exDo(action, id) {
 
 if (examRoot) {
   examRoot.addEventListener("click", (event) => {
+    const ai = event.target.closest("[data-ex-ai]");
+    if (ai) {
+      const id = ai.dataset.exAi;
+      const msg = examRoot.querySelector(`[data-ex-ai-msg="${id}"]`);
+      const answer = (examState.data.outputs?.[id] || "").trim();
+      if (!answer) {
+        event.preventDefault();
+        msg.textContent = "산출물을 먼저 적어 주세요.";
+        return;
+      }
+      const act = exCurrentDay().activities.find((x) => x.id === id);
+      const prompt = exFeedbackPrompt(exPack(), act, answer);
+      // 링크 이동은 그대로 두고(팝업 차단 방지), 같은 클릭 안에서 복사만 한다.
+      navigator.clipboard.writeText(prompt).then(
+        () => { msg.textContent = "질문을 복사했습니다. 열린 창에 붙여 넣기(⌘V / Ctrl+V) 하세요."; },
+        () => {
+          msg.textContent = "자동 복사가 안 됐습니다. 아래 질문을 직접 복사하세요.";
+          msg.parentElement.querySelector(".exam-ai-fallback")?.remove();
+          msg.insertAdjacentHTML("afterend", `<textarea class="exam-ai-fallback" rows="6" readonly>${exEsc(prompt)}</textarea>`);
+        }
+      );
+      return;
+    }
     const btn = event.target.closest("[data-ex-action]");
     if (!btn || btn.disabled) return;
     const card = btn.dataset.exAction.startsWith("review-") && btn.closest(".exam-err");
