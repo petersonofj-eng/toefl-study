@@ -150,10 +150,10 @@ function exDayProgress(day) {
 function initExam() {
   if (!examRoot) return;
   if (!exLearnerId()) {
-    examRoot.innerHTML = `<p class="exam-locked">학습자를 먼저 선택하면 시험 준비를 시작할 수 있습니다.</p>`;
+    examRoot.innerHTML = `<p class="exam-locked">위의 <strong>학습자</strong> 칸에 이름을 넣고 <strong>열기</strong>를 누르면 시작합니다.</p>`;
     return;
   }
-  examState = { stage: "overview", day: null, data: exLoad(), errorDraft: null };
+  examState = { stage: "day", day: null, data: exLoad(), errorDraft: null };
   if (!examState.data.plan) examState.stage = "setup";
   renderExam();
 }
@@ -162,8 +162,8 @@ function renderExam() {
   if (!examRoot) return;
   const s = examState;
   const tabs = s.data.plan
-    ? `<nav class="exam-tabs">${[["overview", "계획"], ["day", "오늘"], ["errors", "오류·복습"], ["setup", "다시 설정"]]
-        .map(([k, l]) => `<button type="button" class="exam-tab${s.stage === k ? " is-active" : ""}" data-ex-action="go" data-ex-id="${k}">${l}</button>`).join("")}</nav>`
+    ? `<nav class="exam-tabs" aria-label="시험 준비 메뉴">${[["day", "오늘"], ["overview", "전체 계획"], ["errors", "오류·복습"], ["setup", "다시 설정"]]
+        .map(([k, l]) => `<button type="button" class="exam-tab${s.stage === k ? " is-active" : ""}"${s.stage === k ? ' aria-current="page"' : ""} data-ex-action="go" data-ex-id="${k}">${l}</button>`).join("")}</nav>`
     : "";
   let body = "";
   if (s.stage === "setup") body = renderExamSetup();
@@ -187,6 +187,7 @@ function renderExamSetup() {
   const scores = p?.scores || { reading: 3, listening: 3, writing: 1.5, speaking: 2 };
   return `
     <form class="exam-setup" data-ex-form="setup">
+      <h2 class="exam-h is-first">${p ? "계획 다시 설정" : "계획 만들기"}</h2>
       <p class="exam-hint">현재 점수와 공부 가능한 시간을 넣으면 기간에 맞는 계획을 만듭니다. ${p ? "다시 만들어도 체크 기록과 오류 기록은 남습니다." : ""}</p>
       <fieldset>
         <legend>시험과 기간</legend>
@@ -239,9 +240,9 @@ function renderExamOverview() {
       <div><small>시험</small><strong>${exEsc(pack.name)} ${pack.version}</strong></div>
       <div><small>기간</small><strong>${p.start_date} ~ ${p.days[p.days.length - 1].date}</strong></div>
       <div><small>주당 / 하루</small><strong>${p.study_days_per_week}일 · ${p.daily_minutes}분</strong></div>
-      <div><small>진행</small><strong>${actCount ? Math.round((doneCount / actCount) * 100) : 0}%</strong></div>
+      <div><small>진행</small><strong>${actCount ? Math.round((doneCount / actCount) * 100) : 0}% <span class="exam-sub">${doneCount}/${actCount}개</span></strong></div>
     </div>
-    <h4 class="exam-h">하루 시간 배분</h4>
+    <h2 class="exam-h">하루 시간 배분 <small>${p.daily_minutes}분</small></h2>
     <ul class="exam-alloc">
       <li><span class="exam-alloc-name">일반 영어 <small>시편·잠언</small></span>
         <span class="exam-bar is-general"><i style="width:${(alloc.general / p.daily_minutes) * 100}%"></i></span>
@@ -259,11 +260,21 @@ function exDayCell(day) {
   const prog = exDayProgress(day);
   const done = prog === 1 ? " is-done" : "";
   const today = day.date === exToday() ? " is-today" : "";
-  return `<button type="button" class="exam-day is-${day.type}${done}${today}" data-ex-action="day" data-ex-id="${day.date}">
+  return `<button type="button" class="exam-day is-${day.type}${done}${today}"${today ? ' aria-current="date"' : ""} data-ex-action="day" data-ex-id="${day.date}">
     <span>${d.getUTCMonth() + 1}/${d.getUTCDate()} (${EX_WEEKDAYS[d.getUTCDay()]})</span>
     <small>${label}</small>
     ${prog === null ? "" : `<i class="exam-day-bar"><b style="width:${prog * 100}%"></b></i>`}
   </button>`;
+}
+
+function exDayStatus(day) {
+  if (!day.activities.length) return "";
+  const done = examState.data.done || {};
+  const count = day.activities.filter((a) => done[a.id]).length;
+  const left = day.activities.filter((a) => !done[a.id]).reduce((n, a) => n + a.minutes, 0);
+  return count === day.activities.length
+    ? `<p class="exam-daystatus is-done" role="status">오늘 할 일을 모두 마쳤습니다.</p>`
+    : `<p class="exam-daystatus" role="status"><strong>${count}/${day.activities.length}</strong> 완료 · 남은 시간 약 ${left}분</p>`;
 }
 
 function exCurrentDay() {
@@ -291,20 +302,23 @@ function renderExamDay() {
           ${exSectionName(pack, a.section)} · ${a.minutes}분
         </span>
       </header>
-      ${a.ref ? `<p class="exam-ref">본문: <strong>${exEsc(a.ref)}</strong> <small>${exEsc(pack.general.note)}</small></p>` : ""}
-      ${a.tasks.length ? `<p class="exam-tasks">${a.tasks.map((t) => exEsc(pack.sections.flatMap((s) => s.tasks).find((x) => x.id === t)?.name || t)).join(" · ")}</p>` : ""}
-      <ol>${a.steps.map((st) => `<li>${exEsc(st)}</li>`).join("")}</ol>
+      ${a.ref ? `<p class="exam-ref">본문 <strong>${exEsc(a.ref)}</strong> <small>가지고 있는 영어 성경 번역본으로 읽고 듣습니다.</small></p>` : ""}
+      <div class="exam-collapsible"><div>
+      ${a.tasks.length > 1 ? `<p class="exam-tasks">${a.tasks.map((t) => exEsc(pack.sections.flatMap((s) => s.tasks).find((x) => x.id === t)?.name || t)).join(" · ")}</p>` : ""}
+      <ol class="exam-steps">${a.steps.map((st, n) => `<li${n === 0 && a.kind === "exam" && a.section !== "review" ? ' class="is-lead"' : ""}>${exEsc(st)}</li>`).join("")}</ol>
       ${a.link ? `<p><a href="${exEsc(a.link)}" target="_blank" rel="noopener">ETS 공식 연습 자료 열기</a></p>` : ""}
-      <label class="exam-output">산출물 · ${exEsc(a.output)}<textarea rows="3" data-ex-output="${a.id}">${exEsc(outputs[a.id] || "")}</textarea></label>
+      </div></div>
+      <label class="exam-output"><span>산출물 · ${exEsc(a.output)} <small>자동 저장</small></span><textarea rows="3" data-ex-output="${a.id}">${exEsc(outputs[a.id] || "")}</textarea></label>
       ${a.section !== "general" ? `<button type="button" class="exam-link" data-ex-action="log-error" data-ex-id="${a.section}">오류 기록에 추가</button>` : ""}
     </article>`).join("");
   return `
     <div class="exam-dayhead">
       <button type="button" class="exam-nav" data-ex-action="day" data-ex-id="${p.days[i - 1]?.date || ""}"${i ? "" : " disabled"}>← 이전</button>
-      <div><strong>${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 (${EX_WEEKDAYS[d.getUTCDay()]})</strong>
+      <div><h2>${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 (${EX_WEEKDAYS[d.getUTCDay()]})</h2>
         <small>${day.week + 1}주 차 · ${ph.label} — ${ph.goal}</small></div>
       <button type="button" class="exam-nav" data-ex-action="day" data-ex-id="${p.days[i + 1]?.date || ""}"${i < p.days.length - 1 ? "" : " disabled"}>다음 →</button>
     </div>
+    ${exDayStatus(day)}
     ${day.type === "rest" ? `<p class="exam-rest">휴식일입니다. 밀린 과제가 있다면 1개만 보충합니다.</p>` : acts}`;
 }
 
@@ -326,22 +340,27 @@ function renderExamErrors() {
       ${actions}
     </article>`;
   return `
-    <h4 class="exam-h">오늘 복습할 오류 <small>${due.length}개</small></h4>
+    <h2 class="exam-h">오늘 복습할 오류 <small>${due.length}개</small></h2>
     ${due.length ? due.map((e) => card(e, `<div class="exam-err-actions">
         <button type="button" data-ex-action="review-ok" data-ex-id="${e.id}">맞혔어요</button>
-        <button type="button" data-ex-action="review-miss" data-ex-id="${e.id}">또 틀렸어요</button></div>`)).join("") : `<p class="exam-hint">오늘 복습할 오류가 없습니다.</p>`}
-    <h4 class="exam-h">오류 기록하기</h4>
+        <button type="button" data-ex-action="review-miss" data-ex-id="${e.id}">또 틀렸어요</button></div>`)).join("") : `<p class="exam-hint">오늘 다시 풀 오류가 없습니다.</p>`}
+    <h2 class="exam-h">오류 기록하기</h2>
     <form class="exam-errform" data-ex-form="error">
       <label>영역<select name="section">${pack.sections.map((s) => `<option value="${s.id}"${draft.section === s.id ? " selected" : ""}>${s.ko} ${s.name}</option>`).join("")}<option value="review"${draft.section === "review" ? " selected" : ""}>점검</option></select></label>
-      <label>과제 유형<select name="task"><option value="">선택 안 함</option>${allTasks.map((t) => `<option value="${t.id}">${exEsc(t.name)}</option>`).join("")}</select></label>
+      <label>과제 유형<select name="task">${exTaskOptions(pack, draft.section || pack.sections[0].id)}</select></label>
       <label class="is-wide">내 답 (원문 그대로)<textarea name="original" rows="2" required></textarea></label>
       <label class="is-wide">고친 답<textarea name="corrected" rows="2"></textarea></label>
       <fieldset class="is-wide exam-tagpick"><legend>오류 유형</legend>${pack.error_tags.map((t) => `<label><input type="checkbox" name="tags" value="${exEsc(t)}">${exEsc(t)}</label>`).join("")}</fieldset>
       <label class="is-wide">짧은 설명<input type="text" name="note" placeholder="왜 틀렸는지 한 줄"></label>
       <button type="submit" class="exam-primary">기록하기</button>
     </form>
-    <h4 class="exam-h">전체 오류 기록 <small>${errors.length}개</small></h4>
-    ${errors.slice().reverse().map((e) => card(e, "")).join("") || `<p class="exam-hint">아직 기록이 없습니다.</p>`}`;
+    <h2 class="exam-h">전체 오류 기록 <small>${errors.length}개</small></h2>
+    ${errors.slice().reverse().map((e) => card(e, "")).join("") || `<p class="exam-hint">문제를 풀다 틀린 답을 원문 그대로 적어 두면 1일·3일·7일 뒤에 다시 보여 줍니다.</p>`}`;
+}
+
+function exTaskOptions(pack, sectionId) {
+  const tasks = pack.sections.find((s) => s.id === sectionId)?.tasks || [];
+  return `<option value="">선택 안 함</option>${tasks.map((t) => `<option value="${t.id}">${exEsc(t.name)}</option>`).join("")}`;
 }
 
 function renderExamFooter(pack) {
@@ -367,15 +386,31 @@ function exDo(action, id) {
 if (examRoot) {
   examRoot.addEventListener("click", (event) => {
     const btn = event.target.closest("[data-ex-action]");
-    if (btn && !btn.disabled) exDo(btn.dataset.exAction, btn.dataset.exId);
+    if (!btn || btn.disabled) return;
+    const card = btn.dataset.exAction.startsWith("review-") && btn.closest(".exam-err");
+    if (card && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      card.style.pointerEvents = "none";
+      card.animate(
+        [{ opacity: 1, transform: "none" }, { opacity: 0, transform: `translateX(${btn.dataset.exAction === "review-ok" ? 12 : -12}px) scale(0.98)` }],
+        { duration: 180, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "forwards" }
+      ).finished.then(() => exDo(btn.dataset.exAction, btn.dataset.exId));
+      return;
+    }
+    exDo(btn.dataset.exAction, btn.dataset.exId);
   });
 
   examRoot.addEventListener("change", (event) => {
+    if (event.target.name === "section" && event.target.form?.dataset.exForm === "error") {
+      event.target.form.task.innerHTML = exTaskOptions(exPack(), event.target.value);
+      return;
+    }
     const id = event.target.dataset.exDone;
     if (!id) return;
     examState.data.done = { ...examState.data.done, [id]: event.target.checked };
     exSave();
     event.target.closest(".exam-act")?.classList.toggle("is-done", event.target.checked);
+    const status = examRoot.querySelector(".exam-daystatus");
+    if (status) status.outerHTML = exDayStatus(exCurrentDay());
   });
 
   examRoot.addEventListener("input", (event) => {
