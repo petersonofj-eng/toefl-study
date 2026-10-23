@@ -310,6 +310,7 @@ function renderExamDay() {
       <div class="exam-collapsible"><div>
       ${a.tasks.length > 1 ? `<p class="exam-tasks">${a.tasks.map((t) => exEsc(pack.sections.flatMap((s) => s.tasks).find((x) => x.id === t)?.name || t)).join(" · ")}</p>` : ""}
       <ol class="exam-steps">${a.steps.map((st, n) => `<li${n === 0 && a.kind === "exam" && a.section !== "review" ? ' class="is-lead"' : ""}>${exEsc(st)}</li>`).join("")}</ol>
+      ${a.tasks.map((t) => exGuide(pack, t)).join("")}
       ${a.link ? `<p><a href="${exEsc(a.link)}" target="_blank" rel="noopener">ETS 공식 연습 자료 열기</a></p>` : ""}
       </div></div>
       <label class="exam-output"><span>산출물 · ${exEsc(a.output)} <small>자동 저장</small></span><textarea rows="3" data-ex-output="${a.id}">${exEsc(outputs[a.id] || "")}</textarea></label>
@@ -336,15 +337,42 @@ function renderExamDay() {
     ${day.type === "rest" ? `<p class="exam-rest">휴식일입니다. 밀린 과제가 있다면 1개만 보충합니다.</p>` : acts}`;
 }
 
+function exTaskName(pack, taskId) {
+  return pack.sections.flatMap((s) => s.tasks).find((x) => x.id === taskId)?.name || taskId;
+}
+
+function exGuide(pack, taskId) {
+  const g = pack.guides?.[taskId];
+  if (!g) return "";
+  const pr = g.practice;
+  return `
+    <details class="exam-guide">
+      <summary>${exEsc(exTaskName(pack, taskId))} · 풀이 전략과 연습 문제</summary>
+      ${g.limit ? `<p class="exam-guide-limit">${exEsc(g.limit)}</p>` : ""}
+      <ul class="exam-guide-list">${g.strategy.map((x) => `<li>${exEsc(x)}</li>`).join("")}</ul>
+      <div class="exam-guide-practice">
+        <strong>자체 연습 문제 <small>ETS 기출 아님</small></strong>
+        <p class="exam-pre">${exEsc(pr.prompt)}</p>
+        <details class="exam-guide-answer">
+          <summary>정답과 해설 보기</summary>
+          <p class="exam-pre">${exEsc(pr.answer)}</p>
+          <p class="exam-guide-explain">${exEsc(pr.explain)}</p>
+        </details>
+      </div>
+    </details>`;
+}
+
 // AI에 붙여 넣을 질문. 학생 답안은 URL에 넣지 않고 클립보드로만 옮긴다.
 function exFeedbackPrompt(pack, a, answer) {
-  const taskNames = a.tasks.map((t) => pack.sections.flatMap((s) => s.tasks).find((x) => x.id === t)?.name || t);
+  const taskNames = a.tasks.map((t) => exTaskName(pack, t));
+  const limits = a.tasks.map((t) => pack.guides?.[t]?.limit && `${exTaskName(pack, t)} — ${pack.guides[t].limit}`).filter(Boolean);
   return [
     `너는 ${pack.name}(${pack.version} 형식) 영어 코치야. 한국 고등학생의 연습 산출물을 봐 줘. 설명은 한국어로 짧게 해 줘.`,
     "",
     `[과제] ${exSectionName(pack, a.section)} · ${taskNames.length ? taskNames.join(" + ") : a.title}`,
     `[과제 안내]\n${a.steps.map((st, i) => `${i + 1}. ${st}`).join("\n")}`,
     a.ref ? `[본문] ${a.ref}` : null,
+    limits.length ? `[시험 조건]\n${limits.join("\n")}` : null,
     `[학생 산출물: ${a.output}]\n"""\n${answer}\n"""`,
     "",
     "[피드백 규칙]",

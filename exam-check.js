@@ -39,6 +39,12 @@ for (const weeks of [1, 2, 3, 8, 12]) {
   }
 }
 
+// 모든 과제 유형에 풀이 전략과 연습 문제가 있다
+for (const id of taskIds) {
+  const g = pack.guides[id];
+  assert.ok(g && g.strategy.length && g.practice.prompt && g.practice.answer && g.practice.explain, "가이드 " + id);
+}
+
 // 복습 간격 1 → 3 → 7, 틀리면 처음으로
 let e = { stage: 0, due: "2026-10-24" };
 e = exReviewNext(e, true, "2026-10-24"); assert.deepStrictEqual([e.stage, e.due], [1, "2026-10-27"]);

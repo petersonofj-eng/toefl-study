@@ -136,6 +136,23 @@
 .exam-output { display: grid; gap: 6px; font-size: 12.5px; color: var(--muted); margin: 4px 0; }
 .exam-act a { color: var(--forest); font-weight: 700; font-size: 13.5px; text-underline-offset: 3px; }
 
+/* 풀이 전략 · 연습 문제 */
+.exam-guide { border: 1px solid var(--line); border-radius: 10px; background: #fff; margin: 4px 0 8px; }
+.exam-guide > summary {
+  cursor: pointer; list-style-position: inside; padding: 9px 12px; min-height: 40px;
+  font-size: 13px; font-weight: 700; color: var(--exam-accent-text);
+}
+.exam-guide[open] > summary { border-bottom: 1px solid var(--line); }
+.exam-guide-limit { margin: 10px 12px 0; font-size: 12.5px; font-weight: 700; color: var(--exam-clay-text); }
+.exam-guide-list { margin: 8px 0 0; padding: 0 14px 0 30px; font-size: 13.5px; line-height: 1.65; }
+.exam-guide-practice { margin: 10px 12px 12px; padding: 10px 12px; border-radius: 8px; background: var(--soft); }
+.exam-guide-practice > strong { font-size: 13px; }
+.exam-guide-practice > strong small { color: var(--muted); font-weight: 500; font-size: 11.5px; margin-left: 4px; }
+.exam-pre { white-space: pre-line; margin: 6px 0 0; font-size: 13.5px; line-height: 1.65; }
+.exam-guide-answer { margin-top: 8px; }
+.exam-guide-answer summary { cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--forest); min-height: 32px; display: flex; align-items: center; width: fit-content; }
+.exam-guide-explain { margin: 6px 0 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
+
 /* AI 피드백 */
 .exam-ai { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 8px 0 2px; }
 .exam-ai-label { font-size: 12.5px; font-weight: 800; color: var(--exam-accent-text); margin-right: 2px; }
@@ -181,7 +198,7 @@
 .exam-footer a { color: var(--forest); text-underline-offset: 3px; }
 
 @media (pointer: coarse) {
-  .exam-tab, .exam-nav, .exam-primary, .exam-err-actions button, .exam-check, .exam-link, .exam-ai-btn, .exam-fb summary { min-height: 44px; }
+  .exam-tab, .exam-nav, .exam-primary, .exam-err-actions button, .exam-check, .exam-link, .exam-ai-btn, .exam-fb summary, .exam-guide > summary, .exam-guide-answer summary { min-height: 44px; }
 }
 @media (max-width: 640px) {
   .exam-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
@@ -225,7 +242,7 @@
   .exam-link:hover { text-decoration-color: currentColor; }
   .exam-tab:not(.is-active):hover { color: var(--forest); border-color: rgba(75, 31, 99, 0.3); }
   .exam-day:hover, .exam-nav:hover:not(:disabled), .exam-err-actions button:hover, .exam-ai-btn:hover { border-color: var(--forest); }
-  .exam-fb summary:hover { color: var(--forest); }
+  .exam-fb summary:hover, .exam-guide > summary:hover { color: var(--forest); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -234,3 +251,12 @@
   .exam-collapsible { transition: opacity 160ms ease; }
   .exam-daystatus.is-done { transition: opacity 200ms ease; @starting-style { opacity: 0; transform: none; } }
 }
+
+/* 접는 칸 표시 (summary에 flex를 쓰면 기본 ▸가 사라진다) */
+.exam-fb summary::before, .exam-guide-answer summary::before {
+  content: ""; width: 0; height: 0; margin-right: 7px;
+  border-left: 5px solid currentColor; border-top: 4px solid transparent; border-bottom: 4px solid transparent;
+  transition: transform 160ms var(--ease-out);
+}
+.exam-fb[open] > summary::before, .exam-guide-answer[open] > summary::before { transform: rotate(90deg); }
+.exam-fb summary::-webkit-details-marker, .exam-guide-answer summary::-webkit-details-marker { display: none; }
