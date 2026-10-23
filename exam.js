@@ -191,18 +191,22 @@ function renderExamSetup() {
       <p class="exam-hint">현재 점수와 공부 가능한 시간을 넣으면 기간에 맞는 계획을 만듭니다. ${p ? "다시 만들어도 체크 기록과 오류 기록은 남습니다." : ""}</p>
       <fieldset>
         <legend>시험과 기간</legend>
-        <label>시험<select name="pack">${Object.values(EXAM_PACKS).map((x) => `<option value="${x.id}">${exEsc(x.name)} (${x.version})</option>`).join("")}</select></label>
+        <div class="exam-fields">
+        <label class="exam-span">시험<select name="pack">${Object.values(EXAM_PACKS).map((x) => `<option value="${x.id}">${exEsc(x.name)} (${x.version})</option>`).join("")}</select></label>
         <label>시작일<input type="date" name="startDate" required value="${p?.start_date || exToday()}"></label>
         <label>기간(주)<input type="number" name="weeks" min="1" max="12" required value="${p?.weeks || 3}"></label>
         <label>주당 공부일<select name="studyDays">${[5, 6, 7].map((n) => `<option value="${n}"${n === (p?.study_days_per_week || 6) ? " selected" : ""}>${n}일</option>`).join("")}</select></label>
         <label>하루 공부 시간(분)<input type="number" name="dailyMinutes" min="60" max="240" step="5" required value="${p?.daily_minutes || 120}"></label>
+        </div>
       </fieldset>
       <fieldset>
         <legend>진단 점수 (${scale.min}–${scale.max})</legend>
+        <div class="exam-fields">
         ${pack.sections.map((x) => `<label>${x.ko} ${x.name}<select name="score_${x.id}">${opts(scores[x.id])}</select></label>`).join("")}
         <label>목표 점수<select name="target">${opts(p?.target ?? 4)}</select></label>
         <label>진단일<input type="date" name="diagnosedAt" value="${p?.diagnosed_at || ""}"></label>
-        <label>진단 도구<input type="text" name="diagnosticTool" placeholder="예: ETS 모의고사, 교사 평가" value="${exEsc(p?.diagnostic_tool || "")}"></label>
+        <label class="exam-span">진단 도구<input type="text" name="diagnosticTool" placeholder="예: ETS 모의고사, 교사 평가" value="${exEsc(p?.diagnostic_tool || "")}"></label>
+        </div>
       </fieldset>
       <p class="exam-note">시작일이 월요일이면 월–금 학습, 토요일 주간 점검, 일요일 휴식으로 배치됩니다.</p>
       <button type="submit" class="exam-primary">${p ? "계획 다시 만들기" : "계획 만들기"}</button>
@@ -350,7 +354,7 @@ function renderExamErrors() {
       <label>과제 유형<select name="task">${exTaskOptions(pack, draft.section || pack.sections[0].id)}</select></label>
       <label class="is-wide">내 답 (원문 그대로)<textarea name="original" rows="2" required></textarea></label>
       <label class="is-wide">고친 답<textarea name="corrected" rows="2"></textarea></label>
-      <fieldset class="is-wide exam-tagpick"><legend>오류 유형</legend>${pack.error_tags.map((t) => `<label><input type="checkbox" name="tags" value="${exEsc(t)}">${exEsc(t)}</label>`).join("")}</fieldset>
+      <fieldset class="is-wide exam-tagpick"><legend>오류 유형</legend><div class="exam-fields">${pack.error_tags.map((t) => `<label><input type="checkbox" name="tags" value="${exEsc(t)}">${exEsc(t)}</label>`).join("")}</div></fieldset>
       <label class="is-wide">짧은 설명<input type="text" name="note" placeholder="왜 틀렸는지 한 줄"></label>
       <button type="submit" class="exam-primary">기록하기</button>
     </form>

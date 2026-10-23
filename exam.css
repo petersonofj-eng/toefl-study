@@ -36,12 +36,14 @@
 .exam-tab.is-active { background: var(--forest); color: var(--cream); border-color: var(--forest); }
 
 /* 설정 */
+/* fieldset에 직접 grid를 걸면 Safari에서 칸이 눌려 글자가 세로로 쌓인다 → 안쪽 div에 건다 */
 .exam-setup fieldset, .exam-errform fieldset {
-  border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 16px; margin: 0 0 14px;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px;
+  border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px 16px; margin: 0 0 14px; min-width: 0;
 }
+.exam-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(130px, 100%), 1fr)); gap: 12px; }
+@media (max-width: 640px) { .exam-fields .exam-span { grid-column: 1 / -1; } }
 .exam-setup legend, .exam-errform legend { font-weight: 800; font-size: 13px; color: var(--forest); padding: 0 6px; }
-.exam-setup label, .exam-errform label { display: grid; gap: 5px; font-size: 13px; color: var(--muted); }
+.exam-setup label, .exam-errform label { display: grid; gap: 5px; font-size: 13px; color: var(--muted); min-width: 0; word-break: keep-all; }
 .exam-setup input, .exam-setup select, .exam-errform input, .exam-errform select, .exam-errform textarea, .exam-output textarea {
   border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 40px; color: var(--ink); background: #fff; width: 100%;
 }
@@ -138,7 +140,8 @@
 .exam-errform { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .exam-errform .is-wide { grid-column: 1 / -1; }
 .exam-errform .exam-primary { justify-self: start; }
-.exam-errform .exam-tagpick { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); margin: 0; }
+.exam-errform .exam-tagpick { margin: 0; }
+.exam-errform .exam-tagpick .exam-fields { grid-template-columns: repeat(auto-fill, minmax(min(120px, 100%), 1fr)); gap: 4px 12px; }
 .exam-errform .exam-tagpick label { display: flex; gap: 8px; align-items: center; color: var(--ink); min-height: 32px; cursor: pointer; }
 .exam-errform .exam-tagpick input { width: 18px; height: 18px; min-height: 0; margin: 0; accent-color: var(--forest); }
 @media (max-width: 640px) { .exam-errform { grid-template-columns: 1fr; } }
