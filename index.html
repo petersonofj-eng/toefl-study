@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TOEFL 시험 준비</title>
+  <!-- 독립 실행용 껍데기. 병합 시 이 파일은 버리고 exam.css / exam-packs.js / exam.js 와 아래 section만 옮긴다. -->
+  <style>
+    :root {
+      --ink: #26152f; --muted: #716279; --line: #eadfec; --paper: #f5f1f8; --panel: #fffdf8; --soft: #f7f2fa;
+      --forest: #4b1f63; --leaf: #6f8a70; --gold: #b7965b; --rose: #9f4f73; --sky: #8b6aa3; --clay: #bf6b4a; --cream: #fff9ee;
+      --shadow-soft: 0 10px 26px rgba(52, 26, 68, 0.08);
+      --ui-font: Inter, Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #fbfafc; color: var(--ink); font-family: var(--ui-font); }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+    .shell-top { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .shell-top h1 { font-size: 20px; margin: 0; }
+    .shell-top small { color: var(--muted); display: block; font-size: 12px; font-weight: 500; }
+    .shell-learner { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .shell-learner input { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; width: 160px; }
+    .panel { background: #fff; border: 1px solid #e8e1eb; border-radius: 8px; padding: 26px 22px 30px; }
+    .section-heading { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+    .section-heading h3 { margin: 0; font-size: 18px; }
+  </style>
+  <link rel="stylesheet" href="exam.css">
+</head>
+<body>
+  <div class="shell">
+    <div class="shell-top">
+      <h1>TOEFL 시험 준비<small>기록은 이 기기의 이 브라우저에만 저장됩니다. 같은 기기·같은 브라우저로 접속하세요.</small></h1>
+      <form class="shell-learner" id="learnerForm">
+        <label for="learnerInput">학습자</label>
+        <input id="learnerInput" list="learnerList" placeholder="이름 또는 꿈이름" required>
+        <datalist id="learnerList"></datalist>
+        <button type="submit" class="exam-primary">열기</button>
+      </form>
+    </div>
+
+    <!-- 병합 시 이 section을 index.html 패널 목록에 넣고 nav에 data-section="exam" 버튼을 추가한다. -->
+    <section class="panel exam-panel" data-panel="exam">
+      <div class="section-heading compact">
+        <h3>시험 준비</h3>
+      </div>
+      <div class="exam-root" id="examRoot"></div>
+    </section>
+  </div>
+
+  <script src="exam-packs.js"></script>
+  <script src="exam.js"></script>
+  <script>
+    // 독립 실행판 전용 학습자 선택. 병합 시 unlockedStudent가 이 역할을 한다.
+    let examLearner = "";
+    const learnerForm = document.getElementById("learnerForm");
+    const learnerInput = document.getElementById("learnerInput");
+    const learnerList = document.getElementById("learnerList");
+    const readLearners = () => { try { return JSON.parse(localStorage.getItem("exam:learners")) || []; } catch { return []; } };
+    const fillLearners = () => { learnerList.innerHTML = readLearners().map((n) => `<option value="${exEsc(n)}">`).join(""); };
+    const openLearner = (name) => {
+      examLearner = name;
+      learnerInput.value = name;
+      try {
+        localStorage.setItem("exam:learners", JSON.stringify([...new Set([name, ...readLearners()])]));
+        localStorage.setItem("exam:last", name);
+      } catch { /* 저장 불가 환경 */ }
+      fillLearners();
+      initExam();
+    };
+    learnerForm.addEventListener("submit", (e) => { e.preventDefault(); const n = learnerInput.value.trim(); if (n) openLearner(n); });
+    fillLearners();
+    let last = "";
+    try { last = localStorage.getItem("exam:last") || ""; } catch { /* 무시 */ }
+    if (last) openLearner(last); else initExam();
+  </script>
+</body>
+</html>

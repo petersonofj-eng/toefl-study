@@ -1,0 +1,116 @@
+/* ============================================================
+   시험 준비 모듈 — 비전트리 styles.css 변수(--forest 등)를 그대로 사용
+   ============================================================ */
+.exam-root { display: block; }
+.exam-locked { color: var(--muted); font-size: 14px; padding: 20px; text-align: center; }
+.exam-hint { color: var(--muted); font-size: 13px; margin: 8px 0; }
+.exam-note { color: var(--muted); font-size: 12px; margin: 8px 0 18px; }
+.exam-h { margin: 22px 0 10px; font-size: 15px; }
+.exam-h small { color: var(--muted); font-weight: 500; }
+
+.exam-primary {
+  border: 0; border-radius: 8px; background: var(--forest); color: var(--cream);
+  padding: 8px 16px; font-weight: 800; font-size: 13px;
+}
+.exam-link { border: 0; background: none; color: var(--forest); font-weight: 700; font-size: 12.5px; padding: 0; }
+
+/* 탭 */
+.exam-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.exam-tab { font-size: 12.5px; font-weight: 700; color: var(--muted); padding: 5px 14px; border-radius: 8px; background: var(--soft); border: 1px solid var(--line); }
+.exam-tab.is-active { background: var(--forest); color: var(--cream); border-color: var(--forest); }
+
+/* 설정 */
+.exam-setup fieldset, .exam-errform fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 14px; margin: 0 0 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.exam-setup legend, .exam-errform legend { font-weight: 800; font-size: 13px; color: var(--forest); padding: 0 6px; }
+.exam-setup label, .exam-errform label { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.exam-setup input, .exam-setup select, .exam-errform input, .exam-errform select, .exam-errform textarea, .exam-output textarea {
+  border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; color: var(--ink); background: #fff; width: 100%;
+}
+
+/* 요약 */
+.exam-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.exam-summary div { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: var(--panel); display: grid; gap: 2px; }
+.exam-summary small { color: var(--muted); font-size: 11.5px; }
+.exam-summary strong { font-size: 14px; }
+
+/* 시간 배분 */
+.exam-alloc { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.exam-alloc li { display: grid; grid-template-columns: 130px 1fr 48px 56px 80px; gap: 10px; align-items: center; font-size: 13px; }
+.exam-alloc-name small { color: var(--muted); font-size: 11px; }
+.exam-alloc-min { font-weight: 800; text-align: right; }
+.exam-alloc-score { color: var(--muted); font-size: 11.5px; }
+.exam-bar { height: 8px; border-radius: 8px; background: var(--soft); overflow: hidden; }
+.exam-bar i { display: block; height: 100%; background: var(--forest); border-radius: 8px; }
+.exam-bar.is-general i { background: var(--gold); }
+.exam-pri { font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 8px; text-align: center; }
+.exam-pri.is-high { color: var(--clay); background: rgba(191, 107, 74, 0.12); }
+.exam-pri.is-mid { color: var(--rose); background: rgba(159, 79, 115, 0.1); }
+.exam-pri.is-low { color: var(--leaf); background: rgba(111, 138, 112, 0.12); }
+@media (max-width: 640px) {
+  .exam-alloc li { grid-template-columns: 1fr 48px 56px; }
+  .exam-alloc .exam-bar, .exam-alloc-score { grid-column: 1 / -1; }
+}
+
+/* 주차·날짜 */
+.exam-week { margin-top: 18px; }
+.exam-week header { display: grid; gap: 2px; margin-bottom: 8px; }
+.exam-week header strong { font-size: 14px; color: var(--forest); }
+.exam-week header small { color: var(--muted); font-size: 12px; }
+.exam-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 640px) { .exam-days { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.exam-day { display: grid; gap: 3px; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 8px; font-size: 12px; color: var(--ink); }
+.exam-day:hover { border-color: var(--forest); }
+.exam-day small { color: var(--muted); font-size: 11px; }
+.exam-day.is-rest { background: var(--soft); color: var(--muted); }
+.exam-day.is-check small, .exam-day.is-final small { color: var(--clay); font-weight: 700; }
+.exam-day.is-today { outline: 2px solid var(--forest); outline-offset: -1px; }
+.exam-day.is-done { border-color: var(--leaf); }
+.exam-day-bar { display: block; height: 4px; border-radius: 4px; background: var(--soft); overflow: hidden; }
+.exam-day-bar b { display: block; height: 100%; background: var(--leaf); }
+
+/* 하루 세션 */
+.exam-dayhead { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; margin-bottom: 14px; text-align: center; }
+.exam-dayhead div { display: grid; gap: 2px; }
+.exam-dayhead small { color: var(--muted); font-size: 12px; }
+.exam-nav { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12.5px; color: var(--forest); font-weight: 700; }
+.exam-nav:disabled { opacity: 0.4; cursor: default; }
+.exam-rest { color: var(--muted); text-align: center; padding: 30px 0; }
+.exam-act { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); padding: 14px 16px; margin-bottom: 10px; }
+.exam-act.is-done { border-color: var(--leaf); background: #fbfdfb; }
+.exam-act header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; }
+.exam-check { display: flex; gap: 8px; align-items: center; font-weight: 800; font-size: 14.5px; }
+.exam-check input { width: 18px; height: 18px; accent-color: var(--leaf); }
+.exam-act.is-done .exam-check span { text-decoration: line-through; color: var(--muted); }
+.exam-act-meta { color: var(--muted); font-size: 12px; }
+.exam-kind { font-size: 10.5px; font-weight: 800; padding: 1px 7px; border-radius: 8px; margin-right: 4px; }
+.exam-kind.is-exam { color: var(--forest); background: rgba(75, 31, 99, 0.08); }
+.exam-kind.is-general { color: var(--gold); background: rgba(183, 150, 91, 0.14); }
+.exam-ref, .exam-tasks { font-size: 12.5px; margin: 8px 0 0; }
+.exam-ref small { display: block; color: var(--muted); font-size: 11.5px; }
+.exam-tasks { color: var(--sky); font-weight: 700; }
+.exam-act ol { margin: 8px 0; padding-left: 20px; font-size: 13.5px; line-height: 1.6; }
+.exam-act ol li:first-child { color: var(--forest); font-weight: 700; }
+.exam-output { display: grid; gap: 4px; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.exam-act a { color: var(--forest); font-weight: 700; font-size: 13px; }
+
+/* 오류·복습 */
+.exam-errform { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.exam-errform .is-wide { grid-column: 1 / -1; }
+.exam-errform .exam-primary { justify-self: start; }
+.exam-tagpick { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important; }
+.exam-tagpick label { display: flex !important; gap: 6px; align-items: center; color: var(--ink) !important; }
+.exam-tagpick input { width: auto !important; }
+.exam-err { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; background: var(--panel); }
+.exam-err header { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 800; color: var(--forest); }
+.exam-err header small { color: var(--muted); font-weight: 500; }
+.exam-err p { margin: 6px 0 0; font-size: 13.5px; }
+.exam-err-orig { text-decoration: line-through; text-decoration-color: var(--clay); }
+.exam-err-fix { color: var(--leaf); font-weight: 700; }
+.exam-err-tags span { display: inline-block; font-size: 11px; color: var(--rose); background: rgba(159, 79, 115, 0.1); padding: 1px 7px; border-radius: 8px; margin-right: 4px; }
+.exam-err-note { color: var(--muted); font-size: 12.5px !important; }
+.exam-err-actions { display: flex; gap: 8px; margin-top: 8px; }
+.exam-err-actions button { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 5px 12px; font-size: 12.5px; font-weight: 700; color: var(--forest); }
+
+.exam-footer { margin-top: 26px; border-top: 1px solid var(--line); padding-top: 12px; color: var(--muted); font-size: 11.5px; }
+.exam-footer p { margin: 4px 0; }
+.exam-footer a { color: var(--forest); }
